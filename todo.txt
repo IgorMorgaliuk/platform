@@ -1,0 +1,7 @@
+1. if __name__ == __main__
+2. Use ENGLISH!!!
+3. Add restart button 
+4. Add modes:
+ - accelerate ball over time
+ - circular trajectory of the ball
+5. Add music/picture
