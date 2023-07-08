@@ -1,17 +1,17 @@
-from tkinter import *
-import time
+import tkinter as tk
 import random
+from PIL import ImageTk, Image
 
-class Ball():
-
+class Ball:
     def __init__(self, canvas, platform, color):
         self.canvas = canvas
         self.platform = platform
         self.oval = canvas.create_oval(200, 200, 215, 215, fill=color)
         self.dir = [-3, -2, -1, 1, 2, 3]
         self.x = random.choice(self.dir)
-        self.y = -1
+        self.y = -5
         self.touch_bottom = False
+        self.speed = 5  
 
     def touch_platform(self, ball_pos):
         platform_pos = self.canvas.coords(self.platform.rect)
@@ -24,60 +24,107 @@ class Ball():
         self.canvas.move(self.oval, self.x, self.y)
         pos = self.canvas.coords(self.oval)
         if pos[1] <= 0:
-            self.y = 3
+            self.y = self.speed
         if pos[3] >= 400:
             self.touch_bottom = True
-        if self.touch_platform(pos) == True:
-            self.y = -3
+        if self.touch_platform(pos):
+            self.y = -self.speed
+            self.increase_speed()  
         if pos[0] <= 0:
-            self.x = 3
+            self.x = self.speed
         if pos[2] >= 500:
-            self.x = -3
+            self.x = -self.speed
 
-class Platform():
+    def increase_speed(self):
+        self.speed += 1  
 
+class Platform:
     def __init__(self, canvas, color):
         self.canvas = canvas
         self.rect = canvas.create_rectangle(230, 300, 330, 310, fill=color)
         self.x = 0
         self.canvas.bind_all('<KeyPress-Left>', self.left)
         self.canvas.bind_all('<KeyPress-Right>', self.right)
+        self.speed = 5  
 
     def left(self, event):
-        self.x = -2
+        self.x = -self.speed
 
     def right(self, event):
-        self.x = 2
+        self.x = self.speed
 
     def draw(self):
         self.canvas.move(self.rect, self.x, 0)
-        pos=self.canvas.coords(self.rect)
+        pos = self.canvas.coords(self.rect)
         if pos[0] <= 0:
             self.x = 0
         if pos[2] >= 500:
             self.x = 0
+    
+    def increase_speed(self):
+        self.speed += 1 
 
+class GameCanvas:
+    def __init__(self, parent, width, height, background_image_path):
+        self.canvas = tk.Canvas(parent, width=width, height=height)
+        self.canvas.pack()
 
+    def add_background_image(self, image_path):
+        self.background_image = ImageTk.PhotoImage(Image.open(image_path))
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.background_image)
 
-window = Tk()
-window.title("Аркада")
+class Game:
+    def __init__(self, window):
+        self.window = window
+        self.canvas = GameCanvas(self.window, 500, 400, "E:/projects/platform/background.jpg")
+
+        self.platform = Platform(self.canvas.canvas, 'green')
+        self.ball = Ball(self.canvas.canvas, self.platform, 'red')
+
+        self.game_over = False
+        self.restart_button = tk.Button(window, text="Restart Game", command=self.restart_game)
+
+        self.canvas.canvas.focus_set()
+        self.canvas.canvas.bind('<Left>', lambda _: self.platform.left(None))
+        self.canvas.canvas.bind('<Right>', lambda _: self.platform.right(None))
+
+        self.start_new_game()
+
+    def start_new_game(self):
+        self.canvas.canvas.delete(tk.ALL)  
+        self.platform = Platform(self.canvas.canvas, 'green')  
+        self.ball = Ball(self.canvas.canvas, self.platform, 'red')  
+
+        self.game_loop()
+
+    def restart_game(self):
+        self.game_over = False
+        self.ball.touch_bottom = False
+
+        self.canvas.canvas.delete(tk.ALL)
+
+        self.platform = Platform(self.canvas.canvas, 'green')
+        self.ball = Ball(self.canvas.canvas, self.platform, 'red')
+
+        self.game_loop()
+
+    def game_loop(self):
+        if not self.game_over:
+            self.ball.draw()
+            self.platform.draw()
+            if not self.ball.touch_bottom:
+                self.window.after(10, self.game_loop)
+            else:
+                self.game_over = True
+                self.restart_button.pack()
+        else:
+            self.restart_button.pack()
+
+window = tk.Tk()
+window.title("Stack Ball")
 window.resizable(0, 0)
 window.wm_attributes("-topmost", 1)
 
-canvas = Canvas(window, width=500, height=400)
-canvas.pack()
-
-platform = Platform(canvas, 'green')
-ball = Ball(canvas, platform, 'red')
-
-while True:
-    if ball.touch_bottom == False:
-        ball.draw()
-        platform.draw()
-    else:
-        break
-
-    window.update()
-    time.sleep(0.01)
+game = Game(window)
 
 window.mainloop()
