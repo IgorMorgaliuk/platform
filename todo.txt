@@ -1,7 +1,8 @@
 1. if __name__ == __main__
-2. Use ENGLISH!!!
-3. Add restart button 
-4. Add modes:
+2. Setup virtual environment. Add `requirements.txt` file or `evironment.yml` file if conda used.
+2. Name all constants.
+3. Read about PyGame. And rewrite the code using PyGame if you see benefits(write them down) in doing so.
+4. Add modes (with possibility to switch between them):
  - accelerate ball over time
  - circular trajectory of the ball
-5. Add music/picture
+5. Add music/picture.
