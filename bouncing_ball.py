@@ -36,7 +36,7 @@ class Ball:
             self.x = -self.speed
 
     def increase_speed(self):
-        self.speed += 1  
+        self.speed += 0.5  
 
 class Platform:
     def __init__(self, canvas, color):
@@ -49,6 +49,7 @@ class Platform:
 
     def left(self, event):
         self.x = -self.speed
+        print(self.speed)
 
     def right(self, event):
         self.x = self.speed
@@ -62,15 +63,14 @@ class Platform:
             self.x = 0
     
     def increase_speed(self):
-        self.speed += 1 
+        self.speed += 5
 
 class GameCanvas:
     def __init__(self, parent, width, height, background_image_path):
         self.canvas = tk.Canvas(parent, width=width, height=height)
         self.canvas.pack()
 
-    def add_background_image(self, image_path):
-        self.background_image = ImageTk.PhotoImage(Image.open(image_path))
+        self.background_image = ImageTk.PhotoImage(Image.open(background_image_path))
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.background_image)
 
 class Game:
@@ -83,17 +83,34 @@ class Game:
 
         self.game_over = False
         self.restart_button = tk.Button(window, text="Restart Game", command=self.restart_game)
+        self.start_button = tk.Button(window, text="Почати Гру", command=self.start_game)
+
+        self.label = None  # Додано атрибут 'label' зі значенням None
 
         self.canvas.canvas.focus_set()
         self.canvas.canvas.bind('<Left>', lambda _: self.platform.left(None))
         self.canvas.canvas.bind('<Right>', lambda _: self.platform.right(None))
 
-        self.start_new_game()
+        self.start_button.pack()
+
+    def start_game(self):
+        self.start_button.pack_forget()
+        self.countdown(3)
+
+    def countdown(self, seconds):
+        if seconds > 0:
+            if self.label:
+                self.label.destroy()  # Видаляємо попередній label, якщо він існує
+            self.label = tk.Label(self.window, text=str(seconds), font=('Arial', 30))
+            self.label.place(x=250, y=200, anchor=tk.CENTER)
+            self.window.after(1000, self.countdown, seconds - 1)
+        else:
+            self.start_new_game()
 
     def start_new_game(self):
-        self.canvas.canvas.delete(tk.ALL)  
-        self.platform = Platform(self.canvas.canvas, 'green')  
-        self.ball = Ball(self.canvas.canvas, self.platform, 'red')  
+        self.canvas.canvas.delete(tk.ALL)
+        self.platform = Platform(self.canvas.canvas, 'green')
+        self.ball = Ball(self.canvas.canvas, self.platform, 'red')
 
         self.game_loop()
 
@@ -117,8 +134,6 @@ class Game:
             else:
                 self.game_over = True
                 self.restart_button.pack()
-        else:
-            self.restart_button.pack()
 
 window = tk.Tk()
 window.title("Stack Ball")
